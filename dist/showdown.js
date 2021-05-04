@@ -1,4 +1,4 @@
-;/*! showdown v 2.0.0-alpha1 - 24-10-2018 */
+;/*! showdown v 2.0.0-alpha1 - 04-05-2021 */
 (function(){
 /**
  * Created by Tivie on 13-07-2015.
@@ -2530,8 +2530,9 @@ showdown.subParser('makehtml.ellipsis', function (text, options, globals) {
 });
 
 /**
- * These are all the transformations that occur *within* block-level
- * tags like paragraphs, headers, and list items.
+ * Turn emoji codes into emojis
+ *
+ * List of supported emojis: https://github.com/showdownjs/showdown/wiki/Emojis
  */
 showdown.subParser('makehtml.emoji', function (text, options, globals) {
   'use strict';
@@ -3363,7 +3364,7 @@ showdown.subParser('makehtml.italicsAndBold', function (text, options, globals) 
     // to external links. Hash links (#) open in same page
     if (options.openLinksInNewWindow && !/^#/.test(url)) {
       // escaped _
-      target = ' target="¨E95Eblank"';
+      target = ' rel="noopener noreferrer" target="¨E95Eblank"';
     }
 
     // Text can be a markdown element, so we run through the appropriate parsers
@@ -3698,6 +3699,7 @@ showdown.subParser('makehtml.lists', function (text, options, globals) {
     // without resorting to mind-reading. Perhaps the solution is to
     // change the syntax rules such that sub-lists must start with a
     // starting cardinal number; e.g. "1." or "a.".
+    listStr = globals.converter._dispatch('makehtml.lists.items.before', listStr, options, globals).getText();
     globals.gListLevel++;
 
     // trim trailing blank lines:
@@ -3798,6 +3800,8 @@ showdown.subParser('makehtml.lists', function (text, options, globals) {
     if (trimTrailing) {
       listStr = listStr.replace(/\s+$/, '');
     }
+
+    listStr = globals.converter._dispatch('makehtml.lists.items.after', listStr, options, globals).getText();
 
     return listStr;
   }
@@ -4374,6 +4378,12 @@ showdown.subParser('makeMarkdown.blockquote', function (node, globals) {
   return txt;
 });
 
+showdown.subParser('makeMarkdown.break', function () {
+  'use strict';
+
+  return '  \n';
+});
+
 showdown.subParser('makeMarkdown.codeBlock', function (node, globals) {
   'use strict';
 
@@ -4635,6 +4645,10 @@ showdown.subParser('makeMarkdown.node', function (node, globals, spansOnly) {
 
     case 'img':
       txt = showdown.subParser('makeMarkdown.image')(node, globals);
+      break;
+
+    case 'br':
+      txt = showdown.subParser('makeMarkdown.break')(node, globals);
       break;
 
     default:

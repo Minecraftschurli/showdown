@@ -32,6 +32,7 @@ showdown.subParser('makehtml.lists', function (text, options, globals) {
     // without resorting to mind-reading. Perhaps the solution is to
     // change the syntax rules such that sub-lists must start with a
     // starting cardinal number; e.g. "1." or "a.".
+    listStr = globals.converter._dispatch('makehtml.lists.items.before', listStr, options, globals).getText();
     globals.gListLevel++;
 
     // trim trailing blank lines:
@@ -132,6 +133,8 @@ showdown.subParser('makehtml.lists', function (text, options, globals) {
     if (trimTrailing) {
       listStr = listStr.replace(/\s+$/, '');
     }
+
+    listStr = globals.converter._dispatch('makehtml.lists.items.after', listStr, options, globals).getText();
 
     return listStr;
   }
